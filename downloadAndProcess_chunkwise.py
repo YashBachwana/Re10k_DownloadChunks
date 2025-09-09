@@ -4,11 +4,26 @@ import random
 from subprocess import call
 import pickle
 
-outputResultPath = '/data/yash.bachwana/Datasets/Re10k/raw/transcode/'
-basePath = './RealEstate10K/'
+# INDEX = 0 # Sudheer
+# INDEX = 1 # Yash
+# INDEX = 2 # Gurutva
+# INDEX = 3 # Souvik
+# INDEX = 4 # Tekeshwar
+# INDEX = 5 # Mayur
+# INDEX = 6 # Nilay
+# INDEX = 7 # Downstairs1
+# INDEX = 8 # Downstairs2
+# INDEX = 9 # Downstairs3
+# INDEX = 10 # Downstairs4
+# INDEX = 11 # Downstairs5
 
+outputResultPath = f'./raw_{INDEX}/transcode/'
+basePath = './RealEstate10K/'
+# Create ./raw_{INDEX} if it doesn't exist
+if not os.path.exists(f'./raw_{INDEX}'):
+    os.makedirs(f'./raw_{INDEX}')
 # set of videos that were not found
-notFoundVideosPath = "/data/yash.bachwana/Datasets/Re10k/raw/downloaded/notFound.pkl"
+notFoundVideosPath = f"./raw_{INDEX}/downloaded/notFound.pkl"
 
 def loadNotFoundVideos():
     if os.path.exists(notFoundVideosPath):
@@ -36,7 +51,7 @@ def downloadVideo(videoPathURL, notFoundVideos):
     youtubeIDOffset = videoPathURL.find("/watch?v=") + len('/watch?v=')
 
     youtubeID = videoPathURL[youtubeIDOffset:]
-    targetPath = "/data/yash.bachwana/Datasets/Re10k/raw/downloaded/{}".format(youtubeID)
+    targetPath = f"./raw_{INDEX}/downloaded/{youtubeID}"
 
     if youtubeID in notFoundVideos:
         return targetPath, "DOWNLOAD_ERROR", notFoundVideos, youtubeID
@@ -68,6 +83,12 @@ def getBestMatchingFrames(frameTimeStamp, case, maxFrameMatchingDistanceInNS=800
     matches.sort(key=lambda x: x['distance'])
     return matches
 
+import json
+with open("./train_chunks.json", "r") as f:
+    train_chunks = json.load(f)
+chunk_download = train_chunks[INDEX]
+print(f"Processing chunk {INDEX} with {len(chunk_download)} files")
+
 for rootPath in os.listdir(basePath):
     if 'download' in rootPath:
         continue
@@ -75,7 +96,7 @@ for rootPath in os.listdir(basePath):
         print("HEllo")
         continue
     subRootPath = os.path.join(basePath, rootPath)
-    for subPath in os.listdir(subRootPath):
+    for subPath in train_chunks: #os.listdir(subRootPath):
         dataFilePath = os.path.join(subRootPath, subPath)
 
         case = []
