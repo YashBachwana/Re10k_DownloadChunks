@@ -17,6 +17,7 @@ import pickle
 # INDEX = 10 # Downstairs4
 # INDEX = 11 # Downstairs5
 
+INDEX = str(INDEX)
 outputResultPath = f'./raw_{INDEX}/transcode/'
 basePath = './RealEstate10K/'
 # Create ./raw_{INDEX} if it doesn't exist
@@ -92,11 +93,10 @@ print(f"Processing chunk {INDEX} with {len(chunk_download)} files")
 for rootPath in os.listdir(basePath):
     if 'download' in rootPath:
         continue
-    if rootPath == 'train':
-        print("HEllo")
+    if rootPath == 'test':
         continue
     subRootPath = os.path.join(basePath, rootPath)
-    for subPath in train_chunks: #os.listdir(subRootPath):
+    for subPath in chunk_download: #os.listdir(subRootPath):
         dataFilePath = os.path.join(subRootPath, subPath)
 
         case = []

@@ -1,0 +1,10 @@
+name: download_re10k
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - opencv-python
+      - yt-dlp
