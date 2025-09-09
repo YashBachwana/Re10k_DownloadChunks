@@ -6,7 +6,7 @@ import pickle
 
 # INDEX = 0 # Sudheer
 # INDEX = 1 # Yash
-# INDEX = 2 # Gurutva
+# INDEX = 2 # Gurutva 
 # INDEX = 3 # Souvik
 # INDEX = 4 # Tekeshwar
 # INDEX = 5 # Mayur
