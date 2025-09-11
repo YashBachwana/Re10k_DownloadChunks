@@ -68,6 +68,8 @@ def getBestMatchingFrames(frameTimeStamp, case, maxFrameMatchingDistanceInNS=800
     matches.sort(key=lambda x: x['distance'])
     return matches
 
+L = os.listdir("/data/yash.bachwana/Datasets/Re10k/raw/transcode/test")
+
 for rootPath in os.listdir(basePath):
     if 'download' in rootPath:
         continue
@@ -75,7 +77,11 @@ for rootPath in os.listdir(basePath):
         print("HEllo")
         continue
     subRootPath = os.path.join(basePath, rootPath)
+    
     for subPath in os.listdir(subRootPath):
+        if subPath.split('.')[0] in L:
+            print("Exists")
+            continue
         dataFilePath = os.path.join(subRootPath, subPath)
 
         case = []

@@ -1,3 +1,4 @@
+Run : cd Re10k_DownloadChunks
 Run : conda env create -f environment.yml
 Run : conda activate download_re10k
 Comment out line with your name in file downloadAndProcess_chunkwise (Check from Line 7)
