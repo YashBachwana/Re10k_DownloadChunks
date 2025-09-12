@@ -4,162 +4,168 @@ import random
 from subprocess import call
 import pickle
 
-# INDEX = 0 # Sudheer
-# INDEX = 1 # Yash
-# INDEX = 2 # Gurutva 
-# INDEX = 3 # Souvik
-# INDEX = 4 # Tekeshwar
-# INDEX = 5 # Mayur
-# INDEX = 6 # Nilay
-# INDEX = 7 # Downstairs1
-# INDEX = 8 # Downstairs2
-# INDEX = 9 # Downstairs3
-# INDEX = 10 # Downstairs4
-# INDEX = 11 # Downstairs5
+for _ in range(5):
+    # INDEX = 0 # Sudheer
+    # INDEX = 1 # Yash
+    # INDEX = 2 # Gurutva 
+    # INDEX = 3 # Souvik
+    # INDEX = 4 # Tekeshwar
+    # INDEX = 5 # Mayur
+    # INDEX = 6 # Nilay
+    # INDEX = 7 # Downstairs1
+    # INDEX = 8 # Downstairs2
+    # INDEX = 9 # Downstairs3
+    # INDEX = 10 # Downstairs4
+    # INDEX = 11 # Downstairs5
 
-INDEX = str(INDEX)
-outputResultPath = f'./raw_{INDEX}/transcode/'
-basePath = './RealEstate10K/'
-# Create ./raw_{INDEX} if it doesn't exist
-if not os.path.exists(f'./raw_{INDEX}'):
-    os.makedirs(f'./raw_{INDEX}')
-# set of videos that were not found
-notFoundVideosPath = f"./raw_{INDEX}/downloaded/notFound.pkl"
+    INDEX = str(INDEX)
+    outputResultPath = f'./raw_{INDEX}/transcode/'
+    basePath = './RealEstate10K/'
+    # Create ./raw_{INDEX} if it doesn't exist
+    if not os.path.exists(f'./raw_{INDEX}'):
+        os.makedirs(f'./raw_{INDEX}')
+    # set of videos that were not found
+    notFoundVideosPath = f"./raw_{INDEX}/downloaded/notFound.pkl"
 
-def loadNotFoundVideos():
-    if os.path.exists(notFoundVideosPath):
-        with open(notFoundVideosPath, 'rb') as f:
-            return pickle.load(f)
-    else:
-        return set()
+    def loadNotFoundVideos():
+        if os.path.exists(notFoundVideosPath):
+            with open(notFoundVideosPath, 'rb') as f:
+                return pickle.load(f)
+        else:
+            return set()
 
-notFoundVideos = loadNotFoundVideos()
+    notFoundVideos = loadNotFoundVideos()
 
-processedTxtFilesPath = "./processedTxtFiles.pkl"
+    processedTxtFilesPath = "./processedTxtFiles.pkl"
 
-def loadProcessedTxtFiles():
-    if os.path.exists(processedTxtFilesPath):
-        with open(processedTxtFilesPath, 'rb') as f:
-            return pickle.load(f)
-    else:
-        return set()
+    def loadProcessedTxtFiles():
+        if os.path.exists(processedTxtFilesPath):
+            with open(processedTxtFilesPath, 'rb') as f:
+                return pickle.load(f)
+        else:
+            return set()
 
-# These are the txt files that were SUCCESSFULLY processed
-# This is useful to create a "golden" record of the dataset
-processedTxtFiles = loadProcessedTxtFiles()
+    # These are the txt files that were SUCCESSFULLY processed
+    # This is useful to create a "golden" record of the dataset
+    processedTxtFiles = loadProcessedTxtFiles()
 
-def downloadVideo(videoPathURL, notFoundVideos):
-    youtubeIDOffset = videoPathURL.find("/watch?v=") + len('/watch?v=')
+    def downloadVideo(videoPathURL, notFoundVideos):
+        youtubeIDOffset = videoPathURL.find("/watch?v=") + len('/watch?v=')
 
-    youtubeID = videoPathURL[youtubeIDOffset:]
-    targetPath = f"./raw_{INDEX}/downloaded/{youtubeID}"
+        youtubeID = videoPathURL[youtubeIDOffset:]
+        targetPath = f"./raw_{INDEX}/downloaded/{youtubeID}"
 
-    if youtubeID in notFoundVideos:
-        return targetPath, "DOWNLOAD_ERROR", notFoundVideos, youtubeID
-    
-    if os.path.exists(targetPath):
-        print('Skipped {}, warning EXISTS'.format(targetPath))
-        return targetPath, False, notFoundVideos, youtubeID
+        if youtubeID in notFoundVideos:
+            return targetPath, "DOWNLOAD_ERROR", notFoundVideos, youtubeID
+        
+        if os.path.exists(targetPath):
+            print('Skipped {}, warning EXISTS'.format(targetPath))
+            return targetPath, False, notFoundVideos, youtubeID
 
-    return_code = call(["yt-dlp", "-f", "bestvideo[height<=720]", videoPathURL, "-o", targetPath, "--cookies", "./cookies.txt" ])
-    error = False if return_code == 0 else "DOWNLOAD_ERROR"
-    
-    if "DOWNLOAD_ERROR" == error:
-        notFoundVideos.add(youtubeID)
-        with open(notFoundVideosPath, 'wb') as f:
-            pickle.dump(notFoundVideos, f)
+        return_code = call(["yt-dlp", "-f", "bestvideo[height<=720]", videoPathURL, "-o", targetPath, "--cookies", "./cookies.txt" ])
+        error = False if return_code == 0 else "DOWNLOAD_ERROR"
+        
+        if "DOWNLOAD_ERROR" == error:
+            notFoundVideos.add(youtubeID)
+            with open(notFoundVideosPath, 'wb') as f:
+                pickle.dump(notFoundVideos, f)
 
-    return targetPath, error, notFoundVideos, youtubeID
+        return targetPath, error, notFoundVideos, youtubeID
 
-def getBestMatchingFrames(frameTimeStamp, case, maxFrameMatchingDistanceInNS=8000):
-    matches = []
-    for caseIdx, c in enumerate(case):
-        distance = abs(c['timeStamp'] - frameTimeStamp)
-        if distance < maxFrameMatchingDistanceInNS:
-            matches.append({
-                'caseIdx': caseIdx,
-                'distance': distance,
-            })
+    def getBestMatchingFrames(frameTimeStamp, case, maxFrameMatchingDistanceInNS=8000):
+        matches = []
+        for caseIdx, c in enumerate(case):
+            distance = abs(c['timeStamp'] - frameTimeStamp)
+            if distance < maxFrameMatchingDistanceInNS:
+                matches.append({
+                    'caseIdx': caseIdx,
+                    'distance': distance,
+                })
 
-    matches.sort(key=lambda x: x['distance'])
-    return matches
+        matches.sort(key=lambda x: x['distance'])
+        return matches
 
-import json
-with open("./train_chunks.json", "r") as f:
-    train_chunks = json.load(f)
-chunk_download = train_chunks[INDEX]
-print(f"Processing chunk {INDEX} with {len(chunk_download)} files")
+    import json
+    with open("./train_chunks.json", "r") as f:
+        train_chunks = json.load(f)
+    chunk_download = train_chunks[INDEX]
+    print(f"Processing chunk {INDEX} with {len(chunk_download)} files")
 
-L = os.listdir("/data/yash.bachwana/Datasets/scripts/Re10k/raw_7/transcode/train")
+    L = os.listdir("/data/yash.bachwana/Datasets/scripts/Re10k/raw_7/transcode/train")
 
-for rootPath in os.listdir(basePath):
-    if 'download' in rootPath:
-        continue
-    if rootPath == 'test':
-        continue
-    subRootPath = os.path.join(basePath, rootPath)
-    for subPath in chunk_download: #os.listdir(subRootPath):
-        if subPath.split('.')[0] in L:
-            print("Exists")
+    for rootPath in os.listdir(basePath):
+        if 'download' in rootPath:
             continue
-        dataFilePath = os.path.join(subRootPath, subPath)
-
-        case = []
-
-        with open(dataFilePath) as f:
-            videoPathURL = f.readline().rstrip()
-            # process all the rest of the lines 	
-            for l in f.readlines():
-                line = l.split(' ')
-
-                timeStamp = int(line[0])
-                intrinsics = [float(i) for i in line[1:7]]
-                pose = [float(i) for i in line[7:19]]
-                case.append({
-                    'timeStamp': timeStamp, 
-                    'intrinsics': intrinsics,
-                    'pose': pose})
-
-        downloadedVideoPath, error, notFoundVideos, youtubeID = downloadVideo(videoPathURL, notFoundVideos)
-        total_timestamps = len(case)
-        if error != False:
-            print('Skipped {}, error {}'.format(downloadedVideoPath, error))
+        if rootPath == 'test':
             continue
+        subRootPath = os.path.join(basePath, rootPath)
+        for subPath in chunk_download: #os.listdir(subRootPath):
+            if subPath.split('.')[0] in L:
+                print("Exists")
+                continue
+            dataFilePath = os.path.join(subRootPath, subPath)
 
-        # build out the specific frames for the case
-        video = cv2.VideoCapture(downloadedVideoPath) 
-        video.set(cv2.CAP_PROP_POS_MSEC, 0)
-        #import pdb; pdb.set_trace()
+            case = []
 
-        while video.isOpened(): 
-            frameOK, imgFrame = video.read() 
-            if frameOK == False:
-                print('video processing complete')
-                break
+            with open(dataFilePath) as f:
+                videoPathURL = f.readline().rstrip()
+                # process all the rest of the lines 	
+                for l in f.readlines():
+                    line = l.split(' ')
 
-            frameTimeStamp = (int)(round(video.get(cv2.CAP_PROP_POS_MSEC)*1000))
+                    timeStamp = int(line[0])
+                    intrinsics = [float(i) for i in line[1:7]]
+                    pose = [float(i) for i in line[7:19]]
+                    case.append({
+                        'timeStamp': timeStamp, 
+                        'intrinsics': intrinsics,
+                        'pose': pose})
 
-            matches = getBestMatchingFrames(frameTimeStamp, case, 1e9 / (2* video.get(cv2.CAP_PROP_FPS)))
-            for match in matches:
-                caseOffset = match['caseIdx']
-                distance = match['distance']
-                # match was successful, write frame
-                splitType = os.path.basename(rootPath)   # will be "train" or "test"
-                imageOutputDir = os.path.join(outputResultPath, splitType, subPath.split('.')[0])
-                
-                if not os.path.exists(imageOutputDir):
-                    os.makedirs(imageOutputDir)
-                imageOutputPath = os.path.join(imageOutputDir, '{}.jpg'.format(case[caseOffset]['timeStamp']) )
-                
-                if not os.path.exists(imageOutputPath):
-                    print("Writing {} for frame {}, distance {}".format(imageOutputPath, case[caseOffset]['timeStamp'], distance))
-                    cv2.imwrite(imageOutputPath, imgFrame)
+            downloadedVideoPath, error, notFoundVideos, youtubeID = downloadVideo(videoPathURL, notFoundVideos)
+            total_timestamps = len(case)
+            if error != False:
+                print('Skipped {}, error {}'.format(downloadedVideoPath, error))
+                continue
 
-                case[caseOffset]['imgPath'] = imageOutputPath
-        # write the case file to disk
-        processedTxtFiles.add(subPath)
-        with open(processedTxtFilesPath, 'wb') as f:
-            pickle.dump(processedTxtFiles, f)
-        #caseFileOutputPath = os.path.join(imageOutputDir, 'case.pkl')
-        #with open(caseFileOutputPath, 'wb') as f:
-        #    pickle.dump(case, f)
+            # build out the specific frames for the case
+            video = cv2.VideoCapture(downloadedVideoPath) 
+            video.set(cv2.CAP_PROP_POS_MSEC, 0)
+            #import pdb; pdb.set_trace()
+
+            while video.isOpened(): 
+                frameOK, imgFrame = video.read() 
+                if frameOK == False:
+                    print('video processing complete')
+                    break
+
+                frameTimeStamp = (int)(round(video.get(cv2.CAP_PROP_POS_MSEC)*1000))
+
+                matches = getBestMatchingFrames(frameTimeStamp, case, 1e9 / (2* video.get(cv2.CAP_PROP_FPS)))
+                for match in matches:
+                    caseOffset = match['caseIdx']
+                    distance = match['distance']
+                    # match was successful, write frame
+                    splitType = os.path.basename(rootPath)   # will be "train" or "test"
+                    imageOutputDir = os.path.join(outputResultPath, splitType, subPath.split('.')[0])
+                    
+                    if not os.path.exists(imageOutputDir):
+                        os.makedirs(imageOutputDir)
+                    imageOutputPath = os.path.join(imageOutputDir, '{}.jpg'.format(case[caseOffset]['timeStamp']) )
+                    
+                    if not os.path.exists(imageOutputPath):
+                        print("Writing {} for frame {}, distance {}".format(imageOutputPath, case[caseOffset]['timeStamp'], distance))
+                        cv2.imwrite(imageOutputPath, imgFrame)
+
+                    case[caseOffset]['imgPath'] = imageOutputPath
+            # write the case file to disk
+            processedTxtFiles.add(subPath)
+            with open(processedTxtFilesPath, 'wb') as f:
+                pickle.dump(processedTxtFiles, f)
+            #caseFileOutputPath = os.path.join(imageOutputDir, 'case.pkl')
+            #with open(caseFileOutputPath, 'wb') as f:
+            #    pickle.dump(case, f)
+    # Delete downloaded folder 
+    import shutil
+    shutil.rmtree(f'./raw_{INDEX}/downloaded')
+    # Create an empty downloaded folder
+    os.makedirs(f'./raw_{INDEX}/downloaded')
