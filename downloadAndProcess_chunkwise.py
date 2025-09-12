@@ -91,7 +91,8 @@ for _ in range(5):
     chunk_download = train_chunks[INDEX]
     print(f"Processing chunk {INDEX} with {len(chunk_download)} files")
 
-    L = os.listdir("/data/yash.bachwana/Datasets/scripts/Re10k/raw_7/transcode/train")
+    if _ > 0:
+        L = os.listdir(f"./raw_{INDEX}/transcode/train")
 
     for rootPath in os.listdir(basePath):
         if 'download' in rootPath:
@@ -100,7 +101,7 @@ for _ in range(5):
             continue
         subRootPath = os.path.join(basePath, rootPath)
         for subPath in chunk_download: #os.listdir(subRootPath):
-            if subPath.split('.')[0] in L:
+            if _ > 0 and subPath.split('.')[0] in L:
                 print("Exists")
                 continue
             dataFilePath = os.path.join(subRootPath, subPath)
